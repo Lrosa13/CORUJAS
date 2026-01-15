@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Certificado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    #canvas {
+      border: 1px solid #ccc;
+      cursor: move;
+      margin-top: 20px;
+      touch-action: none;
+      width: 100%;
+      height: auto;
+      max-width: 800px;
+    }
+    input, button {
+      padding: 8px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gerador de Certificado</h1>
+  <!-- Campo para digitar o indicativo -->
+  <input type="text" id="indicativo" placeholder="Digite seu indicativo">
+  <br><br>
+  <!-- Opções de estilo -->
+  <label for="fontSize">Tamanho da fonte:</label>
+  <input type="number" id="fontSize" value="64">
+  <br>
+  <label for="fontColor">Cor do texto:</label>
+  <input type="color" id="fontColor" value="#000000">
+  <br><br>
+  <!-- Canvas para mostrar a imagem + texto -->
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <br>
+  <!-- Botão para baixar -->
+  <button onclick="downloadCertificado()">Baixar Certificado</button>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = 'certificado.jpg';
+    let textX = canvas.width / 2;
+    let textY = canvas.height / 2;
+    let dragging = false;
+    let startX, startY;
+
+    img.onload = () => {
+      drawCanvas();
+    };
+
+    function drawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const fontSize = parseInt(document.getElementById('fontSize').value);
+      const fontColor = document.getElementById('fontColor').value;
+      ctx.font = `bold ${fontSize}px Arial`;
+      ctx.fillStyle = fontColor;
+      ctx.textAlign = 'center';
+      ctx.fillText(document.getElementById('indicativo').value.toUpperCase(), textX, textY);
+    }
+
+    document.getElementById('indicativo').addEventListener('input', drawCanvas);
+    document.getElementById('fontSize').addEventListener('input', drawCanvas);
+    document.getElementById('fontColor').addEventListener('input', drawCanvas);
+
+    canvas.addEventListener('mousedown', startDrag);
+    canvas.addEventListener('mousemove', drag);
+    canvas.addEventListener('mouseup', stopDrag);
+    canvas.addEventListener('touchstart', startDrag);
+    canvas.addEventListener('touchmove', drag);
+    canvas.addEventListener('touchend', stopDrag);
+
+    function startDrag(e) {
+      dragging = true;
+      startX = e.clientX || e.touches[0].clientX;
+      startY = e.clientY || e.touches[0].clientY;
+    }
+
+    function drag(e) {
+      if (dragging) {
+        const rect = canvas.getBoundingClientRect();
+        textX = textX + (e.clientX - startX || e.touches[0].clientX - startX);
+        textY = textY + (e.clientY - startY || e.touches[0].clientY - startY);
+        startX = e.clientX || e.touches[0].clientX;
+        startY = e.clientY || e.touches[0].clientY;
+        drawCanvas();
+      }
+    }
+
+    function stopDrag() {
+      dragging = false;
+    }
+
+    function downloadCertificado() {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL();
+      link.download = 'certificado.png';
+      link.click();
+    }
+  </script>
+</body>
+</html>
